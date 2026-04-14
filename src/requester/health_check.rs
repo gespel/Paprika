@@ -13,7 +13,7 @@ impl HealthChecker {
         }
     }
 
-    pub async fn check_health(&mut self) -> bool {
+    pub async fn check_ollama_health(&mut self) -> bool {
         let r = reqwest::get("http://127.0.0.1:11434").await;
         
         match r {
@@ -26,18 +26,18 @@ impl HealthChecker {
                             true
                         }
                         else {
-                            println!("Unexpected message from ollama!");
+                            log::error!("Unexpected message from ollama!");
                             false
                         }
                     }
                     Err(e) => {
-                        println!("Could not parse response string from ollama! {:?}", e);
+                        log::error!("Could not parse response string from ollama! {:?}", e);
                         false
                     }
                 }
             },
             Err(e) => {
-                println!("Ollama did not respond! {:?}", e);
+                log::error!("Ollama did not respond! {:?}", e);
                 false
             }
         }
@@ -48,13 +48,10 @@ impl HealthChecker {
             let mut hc = HealthChecker::new(check_intervall);
 
             loop {
-                if hc.check_health().await == true {
-                    println!("Ollama is available!");
+                if hc.check_ollama_health().await == true {
+                    log::info!("Ollama is available!");
                 }
-                else {
-                    println!("Error. Backend service is not available!");
-                }
-                sleep(Duration::from_millis(check_intervall as u64)).await;
+                sleep(Duration::from_millis(hc.check_intervall as u64)).await;
             }
         })
     }
