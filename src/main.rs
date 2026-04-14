@@ -1,7 +1,6 @@
 mod requester;
 use colored::Colorize;
-use core::time;
-use std::{io::Write, thread};
+use std::{io::Write};
 use chrono::Local;
 use env_logger::Builder;
 use log::LevelFilter;
@@ -39,5 +38,5 @@ async fn main() {
     setup_logging();
 
     let p = Paprika::new();
-    p.health_checker_handle.await;
+    let _ = p.health_checker_handle.await;
 }

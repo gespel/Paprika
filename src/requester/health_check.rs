@@ -1,5 +1,3 @@
-use std::os::unix::thread;
-use reqwest::Response;
 use tokio::time::{sleep, Duration};
 
 pub struct HealthChecker {
