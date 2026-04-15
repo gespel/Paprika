@@ -1,3 +1,5 @@
+use std::iter::RepeatWith;
+
 use reqwest::Client;
 use serde::{Serialize};
 
@@ -31,4 +33,21 @@ impl ModelRequester {
         let r = client.post("http://127.0.0.1:11434/api/generate").body(payload_json).send().await?;
         return r.text().await;
     } 
+
+    pub async fn request_full_text(&mut self, prompt: &str) -> String {
+        match self.request(prompt).await {
+            Ok(r) => {
+                let lines: Vec<&str> = r.split("\n").collect();
+                for line in lines {
+                    println!("Line: {}", line);
+                }
+
+                return "ok".to_string()
+            },
+            Err(e) => {
+                log::error!("");
+                e.to_string()
+            }
+        }
+    }
 }
