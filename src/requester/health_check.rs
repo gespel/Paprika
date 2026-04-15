@@ -47,7 +47,7 @@ impl HealthChecker {
 
             loop {
                 if hc.check_ollama_health().await == true {
-                    log::info!("Ollama online");
+                    log::debug!("Ollama online");
                 }
                 sleep(Duration::from_millis(hc.check_intervall as u64)).await;
             }
