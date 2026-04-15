@@ -1,6 +1,5 @@
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use serde_json::to_string;
+use serde::{Serialize};
 
 #[derive(Serialize, Debug)]
 pub struct GenerateRequest {
