@@ -6,6 +6,8 @@ use env_logger::Builder;
 use log::LevelFilter;
 use requester::health_check::HealthChecker;
 use requester::model_request::ModelRequester;
+use std::io;
+use std::io::*;
 
 struct Paprika {
     health_checker_handle: tokio::task::JoinHandle<()>,
@@ -41,12 +43,14 @@ async fn main() {
     setup_logging();
 
     let mut p = Paprika::new();
-    let health_handle = p.health_checker_handle;
-
-    let question: &str = "Why is the sky blue? Answer as brief as possible";
-
-    let r = p.model_requester.request_full_text(question).await;
-    println!("Question: {}\nAnswer from LLM: {}", question, r);
-
-    let _ = health_handle.await;
+    let _ = p.health_checker_handle;
+    
+    loop {
+        let mut input = String::new();
+        print!("> ");
+        io::stdout().flush();
+        io::stdin().read_line(&mut input).expect("error: unable to read user input");
+        let r = p.model_requester.request_full_text(input.as_str()).await;
+        println!("{}", r.green());
+    }
 }
