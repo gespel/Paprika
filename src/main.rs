@@ -43,8 +43,10 @@ async fn main() {
     let mut p = Paprika::new();
     let health_handle = p.health_checker_handle;
 
-    let r = p.model_requester.request_full_text("Why is the sky blue? Answer as brief as possible").await;
-    println!("Answer from LLM: {}", r);
+    let question: &str = "Why is the sky blue? Answer as brief as possible";
+
+    let r = p.model_requester.request_full_text(question).await;
+    println!("Question: {}\nAnswer from LLM: {}", question, r);
 
     let _ = health_handle.await;
 }
