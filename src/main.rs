@@ -1,4 +1,5 @@
 mod requester;
+mod server;
 use colored::Colorize;
 use std::{io::Write};
 use chrono::Local;
