@@ -8,18 +8,20 @@ use log::LevelFilter;
 use requester::health_check::HealthChecker;
 use requester::model_request::ModelRequester;
 use std::io;
-use std::io::*;
+use server::webserver::PaprikaFrontendServer;
 
 struct Paprika {
     health_checker_handle: tokio::task::JoinHandle<()>,
-    model_requester: ModelRequester
+    model_requester: ModelRequester,
+    frontend: PaprikaFrontendServer
 }
 
 impl Paprika {
     pub fn new() -> Self {
         Paprika { 
             health_checker_handle: HealthChecker::create_health_checker_handle(5000),
-            model_requester: ModelRequester::new("gemma4:e4b")
+            model_requester: ModelRequester::new("gemma4:e4b"),
+            frontend: PaprikaFrontendServer::new()
         }
     }
 }
@@ -45,11 +47,12 @@ async fn main() {
 
     let mut p = Paprika::new();
     let _ = p.health_checker_handle;
+    p.frontend.start();
     
     loop {
         let mut input = String::new();
         print!("> ");
-        io::stdout().flush();
+        let _ = io::stdout().flush();
         io::stdin().read_line(&mut input).expect("error: unable to read user input");
         let r = p.model_requester.request_full_text(input.as_str()).await;
         println!("{}", r.green());

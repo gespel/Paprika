@@ -49,7 +49,7 @@ impl ModelRequester {
                             }
                         }
                         Err(e) => {
-                            
+                            log::error!("{:?}", e);
                         }
                     }
                     
@@ -58,7 +58,7 @@ impl ModelRequester {
                 out
             },
             Err(e) => {
-                log::error!("");
+                log::error!("{:?}", e);
                 e.to_string()
             }
         }

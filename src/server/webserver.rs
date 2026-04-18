@@ -8,4 +8,8 @@ impl PaprikaFrontendServer {
             
         }
     }
+
+    pub fn start(&mut self) {
+        
+    }
 }
