@@ -22,7 +22,7 @@ impl ModelRequester {
     pub async fn request(&mut self, prompt: &str) -> Result<String, reqwest::Error> {
         let client = Client::new();
 
-        let context_prompt: String = format!("Context: You are a helpful chatbot focused on science called Paprika! Occasionally include some jokes with vegetables and some paprika/chilli emojis. Not too often though and only short. user question: {}", prompt);
+        let context_prompt: String = format!("Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", prompt);
 
         let payload = GenerateRequest {
             model: self.model_name.clone(),
