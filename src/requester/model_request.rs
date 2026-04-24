@@ -24,7 +24,9 @@ impl ModelRequester {
         let client = Client::new();
 
         let context_prompt: String = format!("Chat history: {} Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", chat_history, prompt);
-
+        
+        self.context = format!("{} user_prompt: {}", self.context.clone(), prompt.to_string());
+        
         log::info!("Request to model: {}", context_prompt);
 
         let payload = GenerateRequest {
@@ -39,7 +41,6 @@ impl ModelRequester {
 
     pub async fn request_full_text(&mut self, prompt: &str) -> String {
         let mut out: String = String::new();
-        self.context = format!("{} user_prompt: {}", self.context.clone(), prompt.to_string());
         match self.request(prompt, self.context.clone().as_str()).await {
             Ok(r) => {
                 let lines: Vec<&str> = r.split("\n").collect();
