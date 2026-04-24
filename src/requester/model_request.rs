@@ -1,5 +1,6 @@
 use reqwest::Client;
 use serde::{Serialize};
+use uuid::timestamp::context;
 
 #[derive(Serialize, Debug)]
 pub struct GenerateRequest {
@@ -22,9 +23,15 @@ impl ModelRequester {
 
     pub async fn request(&mut self, prompt: &str, chat_history: &str) -> Result<String, reqwest::Error> {
         let client = Client::new();
+        let context_prompt: String;
 
-        let context_prompt: String = format!("Chat history: {} Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", chat_history, prompt);
-        
+        if chat_history.is_empty() {
+            context_prompt = format!("Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", prompt);
+        }
+        else {
+            context_prompt = format!("Chat history: {} Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", chat_history, prompt);
+        }
+
         self.context = format!("{} user_prompt: {}", self.context.clone(), prompt.to_string());
         
         log::info!("Request to model: {}", context_prompt);
