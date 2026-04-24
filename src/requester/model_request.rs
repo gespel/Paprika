@@ -16,7 +16,7 @@ impl ModelRequester {
     pub fn new(model_name: &str) -> Self {
         ModelRequester {
             model_name: model_name.to_string(),
-            context: "".to_string()
+            context: String::new()
         }
     }
 
@@ -38,14 +38,12 @@ impl ModelRequester {
     } 
 
     pub async fn request_full_text(&mut self, prompt: &str) -> String {
-        let mut out: String = "".to_string();
+        let mut out: String = String::new();
         self.context = format!("{} user_prompt: {}", self.context.clone(), prompt.to_string());
         match self.request(prompt, self.context.clone().as_str()).await {
             Ok(r) => {
                 let lines: Vec<&str> = r.split("\n").collect();
-                for line in lines {
-                    //println!("Line: {}", line);
-                    //let j: serde_json::Value = serde_json::from_str(line).unwrap();
+                for line in lines {    
                     match serde_json::from_str::<serde_json::Value>(line) {
                         Ok(j) => {
                             if let Some(response) = j.get("response") {
@@ -53,10 +51,11 @@ impl ModelRequester {
                             }
                         }
                         Err(e) => {
-                            log::error!("{:?}", e);
+                            if !line.is_empty() {
+                                log::warn!("{}, {:?}", line, e);
+                            }
                         }
                     }
-                    
                 }
                 self.context = format!("{} model_answer: {}", self.context, out.to_string());
                 out
