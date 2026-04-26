@@ -14,7 +14,7 @@ pub struct ModelRequester {
 }
 
 pub struct ChatHistory {
-    messages: (String, String)
+    messages: Vec<(String, String)>
 }
 
 impl ModelRequester {
