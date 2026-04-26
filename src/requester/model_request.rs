@@ -13,6 +13,10 @@ pub struct ModelRequester {
     context: String,
 }
 
+pub struct ChatHistory {
+    messages: (String, String)
+}
+
 impl ModelRequester {
     pub fn new(model_name: &str) -> Self {
         ModelRequester {
