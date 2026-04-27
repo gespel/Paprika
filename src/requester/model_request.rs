@@ -1,6 +1,5 @@
 use reqwest::Client;
 use serde::{Serialize};
-use uuid::timestamp::context;
 
 #[derive(Serialize, Debug)]
 pub struct GenerateRequest {
