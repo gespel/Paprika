@@ -10,7 +10,7 @@ pub struct GenerateRequest {
 
 pub struct ModelRequester {
     model_name: String,
-    context: String,
+    //context: String,
     chat_history: ChatHistory
 }
 
@@ -22,20 +22,30 @@ impl ModelRequester {
     pub fn new(model_name: &str) -> Self {
         ModelRequester {
             model_name: model_name.to_string(),
-            context: String::new(),
+            //context: String::new(),
             chat_history: ChatHistory { messages: vec![] }
         }
     }
 
-    pub async fn request(&mut self, prompt: &str, chat_history: &str) -> Result<String, reqwest::Error> {
+    pub async fn request(&mut self, prompt: &str) -> Result<String, reqwest::Error> {
         let client = Client::new();
         let context_prompt: String;
 
-        if chat_history.is_empty() {
+        if self.chat_history.messages.is_empty() {
             context_prompt = format!("Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", prompt);
         }
         else {
-            context_prompt = format!("Chat history: {} Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", chat_history, prompt);
+            let mut chat_history_string: String = String::new();
+
+            for m in &self.chat_history.messages {
+                let request_tuple = m.0.clone();
+                let response_tuple = m.1.clone();
+
+                chat_history_string = chat_history_string + format!(" user_request: {} model_response: {}", request_tuple.1.as_str(), response_tuple.1.as_str()).as_str();
+
+            }
+
+            context_prompt = format!("Chat history: {} Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", chat_history_string, prompt);
         }
         
         log::info!("Request to model: {}", context_prompt);
@@ -52,7 +62,7 @@ impl ModelRequester {
 
     pub async fn request_full_text(&mut self, prompt: &str) -> String {
         let mut out: String = String::new();
-        match self.request(prompt, self.context.clone().as_str()).await {
+        match self.request(prompt).await {
             Ok(r) => {
                 let lines: Vec<&str> = r.split("\n").collect();
                 for line in lines {    
@@ -69,7 +79,7 @@ impl ModelRequester {
                         }
                     }
                 }
-                self.context = format!("{} model_answer: {}", self.context, out.to_string());
+                //self.context = format!("{} model_answer: {}", self.context, out.to_string());
                 self.chat_history.messages.push(
                     (
                         ("user_prompt".to_string(), prompt.to_string()),
