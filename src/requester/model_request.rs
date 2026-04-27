@@ -9,7 +9,7 @@ pub struct GenerateRequest {
 
 pub struct ModelRequester {
     model_name: String,
-    //context: String,
+    context: String,
     chat_history: ChatHistory
 }
 
@@ -18,10 +18,10 @@ pub struct ChatHistory {
 }
 
 impl ModelRequester {
-    pub fn new(model_name: &str) -> Self {
+    pub fn new(model_name: &str, context: &str) -> Self {
         ModelRequester {
             model_name: model_name.to_string(),
-            //context: String::new(),
+            context: context.to_string(),
             chat_history: ChatHistory { messages: vec![] }
         }
     }
@@ -31,7 +31,7 @@ impl ModelRequester {
         let context_prompt: String;
 
         if self.chat_history.messages.is_empty() {
-            context_prompt = format!("Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", prompt);
+            context_prompt = format!("Context: {} user question: {}", self.context, prompt);
         }
         else {
             let mut chat_history_string: String = String::new();
@@ -44,7 +44,7 @@ impl ModelRequester {
 
             }
 
-            context_prompt = format!("Chat history: {} Context: You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. user question: {}", chat_history_string, prompt);
+            context_prompt = format!("Chat history: {} Context: {} user question: {}", chat_history_string, self.context, prompt);
         }
         
         log::info!("Request to model: {}", context_prompt);

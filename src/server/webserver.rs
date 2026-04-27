@@ -41,7 +41,7 @@ impl PaprikaFrontendServer {
     pub async fn start() {
         let chat_state = Arc::new(ChatState {
             messages: Mutex::new(VecDeque::new()),
-            model_requester: Mutex::new(ModelRequester::new("gemma4:e4b")),
+            model_requester: Mutex::new(ModelRequester::new("gemma4:e4b", "You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. Default to german answers.")),
         });
 
         let _ = rocket::build()

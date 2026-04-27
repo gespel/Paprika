@@ -20,7 +20,7 @@ impl Paprika {
     pub fn new() -> Self {
         Paprika { 
             health_checker_handle: HealthChecker::create_health_checker_handle(5000),
-            model_requester: ModelRequester::new("gemma4:e4b"),
+            model_requester: ModelRequester::new("gemma4:e4b", "You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. "),
             frontend: PaprikaFrontendServer::new()
         }
     }
