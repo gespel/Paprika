@@ -1,12 +1,12 @@
-mod requester;
+mod model;
 mod server;
 use colored::Colorize;
 use std::io::Write;
 use chrono::Local;
 use env_logger::Builder;
 use log::LevelFilter;
-use requester::health_check::HealthChecker;
-use requester::model_request::ModelRequester;
+use model::health_check::HealthChecker;
+use model::request::ModelRequester;
 use server::webserver::PaprikaFrontendServer;
 
 #[allow(dead_code)]

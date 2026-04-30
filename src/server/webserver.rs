@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::collections::VecDeque;
 use tokio::sync::Mutex;
-use crate::requester::model_request::ModelRequester;
+use crate::model::request::ModelRequester;
 use pulldown_cmark::{Parser, html};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
