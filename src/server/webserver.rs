@@ -1,9 +1,9 @@
 use rocket::{State, serde::json::Json, fs::FileServer, get, post, routes, response::content};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{sync::Arc, vec};
 use std::collections::VecDeque;
 use tokio::sync::Mutex;
-use crate::model::request::ModelRequester;
+use crate::model::{memories::MemoryManager, model::Model, request::ModelRequester};
 use pulldown_cmark::{Parser, html};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -27,8 +27,7 @@ pub struct ChatResponse {
 }
 
 pub struct ChatState {
-    pub messages: Mutex<VecDeque<ChatMessage>>,
-    pub model_requester: Mutex<ModelRequester>,
+    pub model: Mutex<Model>,
 }
 
 pub struct PaprikaFrontendServer;
@@ -39,15 +38,17 @@ impl PaprikaFrontendServer {
     }
 
     pub async fn start() {
-        let chat_state = Arc::new(ChatState {
-            messages: Mutex::new(VecDeque::new()),
-            model_requester: Mutex::new(ModelRequester::new("gemma4:e4b", "You are a helpful chatbot focused on science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. Default to german answers.")),
-        });
+        let chat_state = Arc::new(
+            ChatState {
+                model: Mutex::new(
+                    Model::new().await
+                )
+            }
+        );
 
         let _ = rocket::build()
             .manage(chat_state)
             .mount("/api", routes![
-                get_chat_history,
                 send_message,
             ])
             .mount("/", routes![root, index_file])
@@ -74,13 +75,6 @@ fn markdown_to_html(markdown: &str) -> String {
     html_output
 }
 
-#[get("/chat/history")]
-fn get_chat_history(state: &State<Arc<ChatState>>) -> Json<Vec<ChatMessage>> {
-    // Wir brauchen einen Blocking-Bereich für sync Code
-    let messages = state.messages.blocking_lock();
-    Json(messages.iter().cloned().collect())
-}
-
 #[post("/chat/send", format = "json", data = "<request>")]
 async fn send_message(
     request: Json<ChatRequest>,
@@ -93,15 +87,11 @@ async fn send_message(
         timestamp: chrono::Local::now().to_rfc3339(),
     };
 
-    let mut messages = state.messages.lock().await;
-    messages.push_back(user_message.clone());
-    drop(messages); // Release the lock
-
     // Nutze den ModelRequester um eine echte Antwort zu generieren
     let assistant_response = {
-        let mut requester = state.model_requester.lock().await;
+        let mut model = state.model.lock().await;
         println!("[SERVER] Sende Anfrage zum Modell: {}", request.message);
-        let response = requester.request_full_text(&request.message).await;
+        let response = model.model_requester.request_full_text(&request.message).await;
         println!("[SERVER] Antwort vom Modell erhalten: {}", response);
         response
     };
@@ -116,9 +106,6 @@ async fn send_message(
         },
         timestamp: chrono::Local::now().to_rfc3339(),
     };
-
-    let mut messages = state.messages.lock().await;
-    messages.push_back(assistant_message.clone());
 
     Json(ChatResponse {
         id: assistant_message.id,
