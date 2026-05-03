@@ -24,6 +24,8 @@ impl Model {
             memories
         };
 
+        
+
         let _memory_handle = tokio::task::spawn(async move {
             loop {
                 let h = memories_clone.lock().await;
