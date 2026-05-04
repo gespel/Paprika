@@ -91,7 +91,7 @@ async fn send_message(
     let assistant_response = {
         let mut model = state.model.lock().await;
         println!("[SERVER] Sende Anfrage zum Modell: {}", request.message);
-        let response = model.model_requester.request_full_text(&request.message).await;
+        let response = model.model_requester.lock().await.request_full_text(&request.message).await;
         println!("[SERVER] Antwort vom Modell erhalten: {}", response);
         response
     };

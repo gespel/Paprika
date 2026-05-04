@@ -19,6 +19,22 @@ pub struct ChatHistory {
     messages: Vec<((String, String), (String, String))>
 }
 
+impl ChatHistory {
+    pub fn to_string(&self) -> String {
+        let mut chat_history_string: String = String::new();
+
+        for m in &self.messages {
+            let request_tuple = m.0.clone();
+            let response_tuple = m.1.clone();
+
+            chat_history_string = chat_history_string + format!(" user_request: {} model_response: {}", request_tuple.1.as_str(), response_tuple.1.as_str()).as_str();
+
+        }
+
+        chat_history_string
+    }
+}
+
 impl ModelRequester {
     pub fn new(model_name: &str, context: &str) -> Self {
         ModelRequester {
@@ -36,17 +52,7 @@ impl ModelRequester {
             context_prompt = format!("Context: {} user question: {}", self.context, prompt);
         }
         else {
-            let mut chat_history_string: String = String::new();
-
-            for m in &self.chat_history.lock().await.messages {
-                let request_tuple = m.0.clone();
-                let response_tuple = m.1.clone();
-
-                chat_history_string = chat_history_string + format!(" user_request: {} model_response: {}", request_tuple.1.as_str(), response_tuple.1.as_str()).as_str();
-
-            }
-
-            context_prompt = format!("Chat history: {} Context: {} user question: {}", chat_history_string, self.context, prompt);
+            context_prompt = format!("Chat history: {} Context: {} user question: {}", &self.chat_history.lock().await.to_string(), self.context, prompt);
         }
         
         log::info!("Request to model: {}", context_prompt);
