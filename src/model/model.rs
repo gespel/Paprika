@@ -33,13 +33,18 @@ impl Model {
 
         let _memory_handle = tokio::task::spawn(async move {
             loop {
-                sleep(Duration::from_secs(30)).await;
+                sleep(Duration::from_secs(1)).await;
                 let c = chat_history.lock().await;
-                let response = memory_manger_requester.lock().await
-                    .request_full_text_without_context(format!("Compress the following chat to key memories for yourself to read later on: {} these are the other memories {:?}", c.to_string(), memories_clone.lock().await.clone()).as_str()).await;
-                
-                memories_clone.lock().await.push(response.clone());
-                println!("Compressed from model: {}", response);
+                if !c.messages.is_empty() {
+                    let response = memory_manger_requester.lock().await
+                        .request_full_text_without_context(format!("Compress the following chat to key memories for yourself to read later on: {} these are the other memories {:?}", c.to_string(), memories_clone.lock().await.clone()).as_str()).await;
+                    
+                    memories_clone.lock().await.push(response.clone());
+                    if memories_clone.lock().await.len() > 3 {
+                        memories_clone.lock().await.remove(0);
+                    }
+                    println!("Compressed from model: {}", response);
+                }
                 drop(c);  // Explizit Lock freigeben
             }
         });
