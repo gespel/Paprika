@@ -1,5 +1,7 @@
 use reqwest::Client;
 use serde::{Serialize};
+use std::{sync::Arc, vec};
+use tokio::sync::Mutex;
 
 #[derive(Serialize, Debug)]
 pub struct GenerateRequest {
@@ -10,7 +12,7 @@ pub struct GenerateRequest {
 pub struct ModelRequester {
     model_name: String,
     context: String,
-    chat_history: ChatHistory
+    pub chat_history: Arc<tokio::sync::Mutex<ChatHistory>>
 }
 
 pub struct ChatHistory {
@@ -22,7 +24,7 @@ impl ModelRequester {
         ModelRequester {
             model_name: model_name.to_string(),
             context: context.to_string(),
-            chat_history: ChatHistory { messages: vec![] }
+            chat_history: Arc::new(Mutex::new(ChatHistory { messages: vec![] }))
         }
     }
 
@@ -30,13 +32,13 @@ impl ModelRequester {
         let client = Client::new();
         let context_prompt: String;
 
-        if self.chat_history.messages.is_empty() {
+        if self.chat_history.lock().await.messages.is_empty() {
             context_prompt = format!("Context: {} user question: {}", self.context, prompt);
         }
         else {
             let mut chat_history_string: String = String::new();
 
-            for m in &self.chat_history.messages {
+            for m in &self.chat_history.lock().await.messages {
                 let request_tuple = m.0.clone();
                 let response_tuple = m.1.clone();
 
@@ -120,7 +122,7 @@ impl ModelRequester {
                     }
                 }
                 //self.context = format!("{} model_answer: {}", self.context, out.to_string());
-                self.chat_history.messages.push(
+                self.chat_history.lock().await.messages.push(
                     (
                         ("user_prompt".to_string(), prompt.to_string()),
                         ("model_answer".to_string(), out.to_string())

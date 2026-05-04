@@ -13,13 +13,17 @@ pub struct Model {
 
 impl Model {
     pub async fn new() -> Self {
+        let model_requester = ModelRequester::new(
+            "gemma4:e4b", 
+            "You are a helpful chatbot focused on science and maths/computer science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. Default to german answers."
+        );
         let memories = Arc::new(Mutex::new(vec![]));
+
         let memories_clone = Arc::clone(&memories);
+        let chat_history = Arc::clone(&model_requester.chat_history);
+
         let out = Model {
-            model_requester: ModelRequester::new(
-                "gemma4:e4b", 
-                "You are a helpful chatbot focused on science and maths/computer science called Paprika! Feel free to include some chilli emojis. Also answer shortly and only elaborate if it is really needed. Default to german answers."
-            ),
+            model_requester,
             memory_manager: MemoryManager{},
             memories
         };
@@ -29,7 +33,7 @@ impl Model {
         let _memory_handle = tokio::task::spawn(async move {
             loop {
                 let h = memories_clone.lock().await;
-                println!("{}", h.len());
+                //println!("{}", h.len());
                 sleep(Duration::from_secs(1)).await;
             }
         });
