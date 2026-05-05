@@ -40,7 +40,7 @@ impl Model {
                         .request_full_text_without_context(format!("Compress the following chat to key memories for yourself to read later on: {} these are the other memories {:?}", c.to_string(), memories_clone.lock().await.clone()).as_str()).await;
                     
                     memories_clone.lock().await.push(response.clone());
-                    if memories_clone.lock().await.len() > 3 {
+                    if memories_clone.lock().await.len() > 1 {
                         memories_clone.lock().await.remove(0);
                     }
                     println!("Compressed from model: {}", response);
