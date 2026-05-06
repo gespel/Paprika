@@ -1,9 +1,8 @@
 use rocket::{State, serde::json::Json, fs::FileServer, get, post, routes, response::content};
 use serde::{Deserialize, Serialize};
 use std::{sync::Arc, vec};
-use std::collections::VecDeque;
 use tokio::sync::Mutex;
-use crate::model::{memories::MemoryManager, model::Model, request::ModelRequester};
+use crate::model::{model::Model};
 use pulldown_cmark::{Parser, html};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -80,19 +79,12 @@ async fn send_message(
     request: Json<ChatRequest>,
     state: &State<Arc<ChatState>>,
 ) -> Json<ChatResponse> {
-    let user_message = ChatMessage {
-        id: uuid::Uuid::new_v4().to_string(),
-        role: "user".to_string(),
-        content: request.message.clone(),
-        timestamp: chrono::Local::now().to_rfc3339(),
-    };
-
     // Nutze den ModelRequester um eine echte Antwort zu generieren
     let assistant_response = {
-        let mut model = state.model.lock().await;
-        println!("[SERVER] Sende Anfrage zum Modell: {}", request.message);
-        let response = model.model_requester.lock().await.request_full_text(&request.message).await;
-        println!("[SERVER] Antwort vom Modell erhalten: {}", response);
+        let model = state.model.lock().await;
+        log::debug!("[SERVER] Sende Anfrage zum Modell: {}", request.message);
+        let response = model.model_requester.lock().await.request_full_text(&request.message, model.memories.lock().await.clone().join(",").as_str()).await;
+        log::debug!("[SERVER] Antwort vom Modell erhalten: {}", response);
         response
     };
 

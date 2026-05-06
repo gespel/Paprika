@@ -3,8 +3,7 @@ mod server;
 use colored::Colorize;
 use std::io::Write;
 use chrono::Local;
-use env_logger::Builder;
-use log::LevelFilter;
+use env_logger::{Builder, Env};
 use model::health_check::HealthChecker;
 use model::request::ModelRequester;
 use server::webserver::PaprikaFrontendServer;
@@ -27,7 +26,7 @@ impl Paprika {
 }
 
 fn setup_logging() {
-    Builder::new()
+    Builder::from_env(Env::default().default_filter_or("info"))
         .format(|buf, record| {
             writeln!(buf,
                 "[{}] {} [{}] - {}",
@@ -37,7 +36,6 @@ fn setup_logging() {
                 record.args()
             )
         })
-        .filter(None, LevelFilter::Info)
         .init();
 }
 
@@ -45,7 +43,7 @@ fn setup_logging() {
 async fn main() {
     setup_logging();
 
-    let p = Paprika::new();
-    let _ = p.health_checker_handle;
+    let _p = Paprika::new();
+    //let _ = p.health_checker_handle;
     PaprikaFrontendServer::start().await;
 }

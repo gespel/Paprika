@@ -11,7 +11,7 @@ pub struct GenerateRequest {
 
 pub struct ModelRequester {
     model_name: String,
-    context: String,
+    pub context: String,
     pub chat_history: Arc<tokio::sync::Mutex<ChatHistory>>
 }
 
@@ -44,15 +44,15 @@ impl ModelRequester {
         }
     }
 
-    pub async fn request(&mut self, prompt: &str) -> Result<String, reqwest::Error> {
+    pub async fn request(&mut self, prompt: &str, memories: &str) -> Result<String, reqwest::Error> {
         let client = Client::new();
         let context_prompt: String;
 
         if self.chat_history.lock().await.messages.is_empty() {
-            context_prompt = format!("Context: {} user question: {}", self.context, prompt);
+            context_prompt = format!("Context: {} Memories: {} user question: {}", self.context, memories, prompt);
         }
         else {
-            context_prompt = format!("Chat history: {} Context: {} user question: {}", &self.chat_history.lock().await.to_string(), self.context, prompt);
+            context_prompt = format!("Chat history: {} Context: {} Memories: {} user question: {}", &self.chat_history.lock().await.to_string(), self.context, memories, prompt);
         }
         
         log::info!("Request to model: {}", context_prompt);
@@ -108,9 +108,9 @@ impl ModelRequester {
         }
     }
 
-    pub async fn request_full_text(&mut self, prompt: &str) -> String {
+    pub async fn request_full_text(&mut self, prompt: &str, memories: &str) -> String {
         let mut out: String = String::new();
-        match self.request(prompt).await {
+        match self.request(prompt, memories).await {
             Ok(r) => {
                 let lines: Vec<&str> = r.split("\n").collect();
                 for line in lines {    

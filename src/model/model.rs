@@ -34,17 +34,24 @@ impl Model {
         let _memory_handle = tokio::task::spawn(async move {
             loop {
                 sleep(Duration::from_secs(1)).await;
-                let c = chat_history.lock().await;
+                let mut c = chat_history.lock().await;
                 if !c.messages.is_empty() {
+                    let memories_old = memories_clone.lock().await.clone();
+                    let persona = memory_manger_requester.lock().await.context.clone();
                     let response = memory_manger_requester.lock().await
-                        .request_full_text_without_context(format!("Compress the following chat to key memories for yourself to read later on: {} these are the other memories {:?}", c.to_string(), memories_clone.lock().await.clone()).as_str()).await;
+                        .request_full_text_without_context(format!("Compress the following chat between you and the user to key memories: {} these are the other memories {:?} and this is your identity: {}", c.to_string(), memories_old, persona).as_str()).await;
                     
+                    log::debug!("Waiting for memories lock to add response...");
                     memories_clone.lock().await.push(response.clone());
+                    log::debug!("Waiting for memories lock to remove old memories...");
                     if memories_clone.lock().await.len() > 1 {
                         memories_clone.lock().await.remove(0);
                     }
+                    log::debug!("Waiting for chat_history log to delete old chat messages...");
+                    c.messages.clear();
                     println!("Compressed from model: {}", response);
                 }
+                //log::debug!("Dropping chat_history lock");
                 drop(c);  // Explizit Lock freigeben
             }
         });
